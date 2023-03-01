@@ -153,7 +153,7 @@ Click on the **data** bucket and upload these 2 files.
 
 Download this file to upload to the ADW Database:
 
-[GDP PER CAPTA COUNTRY.csv](./files/GDP PER CAPTA COUNTRY.csv)
+[GDP PER CAPTA COUNTRY.csv]("./files/GDP PER CAPTA COUNTRY.csv")
 
 Go to Oracle Cloud main menu, select **Oracle Database** and **Autonomous Data Warehouse**.
 Click on the **Processed Logs** Instance to view the details.
