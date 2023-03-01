@@ -149,7 +149,7 @@ Click on the **data** bucket and upload these 2 files.
 
 ![csv-files-data-bucket.png](./images/csv-files-data-bucket.png?raw=true)
 
-### Upload an auxiliar table to ADW Database
+### Upload an auxiliary table to ADW Database
 
 Download this file to upload to the ADW Database:
 
@@ -261,7 +261,8 @@ The token will be generated only in this step and do not will be visible anymore
 The next step is setup some information before execute the demo.
 This demo has 2 applications:
 
->**Java-CSV-DB:** This application will read 1,000,000 lines of a csv file (organizations1M.csv) and execute some usual processes in a common scenario for integration with a database (Oracle Cloud Autonomous Data Warehouse) and a Kafka streaming (Oracle Cloud Streaming). So the demo shows how a CSV dataset can be merged with a auxiliar table in database and crossing types of tables generating a third dataset in memory. After the execution, the dataset will be inserted on ADW and published on the Kafka streaming. 1,000,000 lines!!!!
+>**Java-CSV-DB:** This application will read 1,000,000 lines of a csv file (organizations1M.csv) and execute some usual processes in a common scenario for integration with a database (Oracle Cloud Autonomous Data Warehouse) and a Kafka streaming 
+(Oracle Cloud Streaming). So the demo shows how a CSV dataset can be merged with a auxiliary table in database and crossing types of tables generating a third dataset in memory. After the execution, the dataset will be inserted on ADW and published on the Kafka streaming. 1,000,000 lines!!!!
 
 >**JavaConsumeKafka:** This application will repeat some steps of the first application just to take CPU and memory for a high volume of processing. The difference is, the first application publishes to the Kafka streaming, this application reads from the Streaming. 
 
