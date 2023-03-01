@@ -558,4 +558,4 @@ You can maintain the other parameters and RUN the job.
 
 ## Acknowledgments
 
-- **Author** - Cristiano Hoshikawa (LAD A-Team Solution Engineer)
+- **Author** - Cristiano Hoshikawa (Oracle LAD A-Team Solution Engineer)
