@@ -531,7 +531,7 @@ The first application publishes the data into the Kafka Streaming.
 The second application consumes these data from the Kafka.
 
 So, create another **Dataflow Application** as the same way you created the first one.
-Remember only to change the **name** of your application and pay attention to change the package, from **loadadw-1.0-SNAPSHOT.jar** to loadkafka-1.0-SNAPSHOT.jar**.
+Remember only to change the **name** of your application and pay attention to change the package, from **loadadw-1.0-SNAPSHOT.jar** to **loadkafka-1.0-SNAPSHOT.jar**.
 You can maintain the other parameters and RUN the job.
 
 ## Related Links
