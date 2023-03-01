@@ -202,7 +202,7 @@ You will need to fill a variable named **PASSWORD_SECRET_OCID** in your applicat
 Oracle Cloud Streaming is a Kafka like managed streaming service. You can develop applications using the Kafka APIs and common SDKs in the market.
 So, in this demo, you will create an instance of Streaming and configure it to execute in both applications to publish and consume a high volume of data.
 
-First, you need to create an instance. Select the Oracle Cloud main menu e find the **Analytics & AI** option. So go to the **Streaming**.
+First, you need to create an instance. Select the Oracle Cloud main menu e find the **Analytics & AI** option. So go to the **Streams**.
 
 Change the compartment to **analytics**. Every resource in this demo will be created on this compartment. This is more secure and easy to control IAM.
 
