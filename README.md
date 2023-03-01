@@ -324,6 +324,7 @@ These are the variables that need to be changed with your tenancy resources valu
 >**Note:** All the resources created for this demo are in the US-ASHBURN-1 region. Check in what region you want to work. If you change the region, you need to change 2 points in 2 code files:
 > 
 > **Example.java**: Change the **bootstrapServers** variable, replacing the "us-ashburn-1" with your new region
+>
 > **OboTokenClientConfigurator.java**: Change the **CANONICAL_REGION_NAME** variable with your new region 
 
 ## Task 8: Understand the Java Code
