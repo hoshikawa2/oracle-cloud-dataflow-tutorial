@@ -1,14 +1,3 @@
----
-duration: PT1H30M0S
-description: Learn how to process large files, ADW and Kafka in Dataflow
-level: Advanced
-roles: Devops;Developer;
-lab-id:
-products: en/cloud/oracle-cloud-infrastructure/oci;
-keywords: DATAFLOW STREAMING KAFKA SPARK ADW
-inject-note: true
----
-
 # Learn how to process large files, ADW and Kafka in Dataflow
 
 ## Introduction
