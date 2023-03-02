@@ -1,12 +1,12 @@
-# Learn how to process large files, ADW and Kafka in Dataflow
+# Process large files in Autonomous Database and Kafka with Oracle Cloud Data Flow
 
 ## Introduction
 
-Oracle Cloud Dataflow is a managed service for the great open-source project named Apache Spark.
+Oracle Cloud Data Flow is a managed service for the great open-source project named Apache Spark.
 Basically, with Spark you can use it for massive processing files, streaming and database operations. There is a lot of applications you can build with a very high scalable processing. 
 Spark can scale and use clustered machines to paralellize jobs with a minimum of configuration and hard-work.
 
-Using Spark as a managed service (Dataflow), you can add many scalable services to multiply the power of cloud processing and this tutorial shows you how to use:
+Using Spark as a managed service (Data Flow), you can add many scalable services to multiply the power of cloud processing and this tutorial shows you how to use:
 
 - Object Storage: As low-cost and scalable a file repository
 - Autonomous: As a scalable Database in the cloud
@@ -19,7 +19,7 @@ In this tutorial, you can see the most common activities used to process large f
 
 ## Objectives
 
-- Learn how Dataflow can be used to process a large amount of data
+- Learn how Data Flow can be used to process a large amount of data
 - Learn how to integrate scalable services: File Repository, Database and Queue
 
 ## Prerequisites
@@ -125,6 +125,8 @@ To upload your Wallet zip file, just click on **Upload** button and attach the *
 
 ![upload-wallet.png](./images/upload-wallet.png?raw=true)
 
+>**Note:** Review IAM Policies for access the Autonomous Database here: [IAM Policy for Autonomous Database](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#db-admins-manage-adb)
+
 Let's go to the next Task!
 
 ## Task 3: Upload the CSV Sample Files
@@ -140,7 +142,7 @@ Download these 2 links and Upload to the **data** bucket:
 [organizations1M.csv](https://objectstorage.us-ashburn-1.oraclecloud.com/p/EqwMnzRwjtmes4okPLItLTOSNyq-KW9ktV5s1n4WCS_y1XpCWXDwJCkZ-PYKJeK0/n/idavixsf5sbx/b/data/o/organizations1M.csv)
 
 The **organizations.csv** has only 100 lines, just to test the applications on your local machine.
-The **organizations1M.csv** contains 1,000,000 lines and will be used to run on the Dataflow instance.
+The **organizations1M.csv** contains 1,000,000 lines and will be used to run on the Data Flow instance.
 
 Select again the Oracle Cloud main menu, **Storage** and **Buckets**.
 Click on the **data** bucket and upload these 2 files.
@@ -229,6 +231,8 @@ Let's view the connection setting:
 
 Annotate all these information. You will need them in next step.
 
+>**Note:** Review the IAM Policies for the OCI Streaming here: [IAM Policy for OCI Streaming](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#streaming-manage-streams)
+
 ## Task 6: Generate a AUTH TOKEN to access Kafka
 
 You can access OCI Streaming (Kafka API) and other resources in Oracle Cloud with an Auth Token associated to your user on OCI IAM.
@@ -242,7 +246,7 @@ The resources are:
     Oracle Cloud Autonomous Data Warehouse
     Oracle Cloud Streaming
     Oracle Object Storage
-    Oracle Dataflow
+    Oracle Data Flow
 
 So, click on your username to view the details:
 
@@ -345,10 +349,10 @@ Both applications, to prove the efficience and scalability, were developed to sh
     Perform a loop of the CSV dataset to demonstrate an iteration with the data
     Operate with Kafka Streaming
 
-Oracle Cloud Dataflow is a managed service for Apache Spark. This demo can be executed in your local machine and can be deployed into the Dataflow instance to run as a job execution. The workflow for a developer is very easy and fast.
+Oracle Cloud Data Flow is a managed service for Apache Spark. This demo can be executed in your local machine and can be deployed into the Data Flow instance to run as a job execution. The workflow for a developer is very easy and fast.
 
->**Note:** Both, Dataflow job and you local machine, use the OCI CLI configuration to access the OCI resources.
-In the Dataflow side, everything is pre-configured, so no need to change the parameters. In your local machine side, you installed previously the OCI CLI and configure the tenant, user and private key to access your OCI resources.
+>**Note:** Both, Data Flow job and you local machine, use the OCI CLI configuration to access the OCI resources.
+In the Data Flow side, everything is pre-configured, so no need to change the parameters. In your local machine side, you installed previously the OCI CLI and configure the tenant, user and private key to access your OCI resources.
 
 Let's show the Example.java code in sections:
 
@@ -490,16 +494,16 @@ You can see in the execution logs if the job can access and load the datasets.
 
 ![spark-csv-results.png](./images/spark-csv-results.png?raw=true)
 
-## Task 11: Create and Execute a Dataflow Job
+## Task 11: Create and Execute a Data Flow Job
 
-Now, with both applications running with success in your local Spark machine, you can deploy them into the **Oracle Cloud Dataflow** in your tenancy.
+Now, with both applications running with success in your local Spark machine, you can deploy them into the **Oracle Cloud Data Flow** in your tenancy.
 
 ### Upload the packages into Object Storage
 
-### Create a Dataflow Application
+### Create a   Application
 
 Select the Oracle Cloud main menu and go to **Analytics & AI** and **Data Flow**.
-Be sure to select your **analytics** compartment before create a Dataflow Application.
+Be sure to select your **analytics** compartment before create a Data Flow Application.
 
 Click on **Create application** button:
 
@@ -530,7 +534,7 @@ Wait until the Status go to **Succeeded** and you can see the results.
 The first application publishes the data into the Kafka Streaming.
 The second application consumes these data from the Kafka.
 
-So, create another **Dataflow Application** as the same way you created the first one.
+So, create another **Data Flow Application** as the same way you created the first one.
 Remember only to change the **name** of your application and pay attention to change the package, from **loadadw-1.0-SNAPSHOT.jar** to **loadkafka-1.0-SNAPSHOT.jar**.
 You can maintain the other parameters and RUN the job.
 
@@ -538,9 +542,9 @@ You can maintain the other parameters and RUN the job.
 
 - [Free OCI](https://www.oracle.com/cloud/free/)
 
-- [Dataflow Documentation](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/getting-started/dfs_tut_get_started.htm#get_started)
+- [Data Flow Documentation](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/getting-started/dfs_tut_get_started.htm#get_started)
 
-- [Dataflow Pre-requisites](https://docs.oracle.com/en-us/iaas/data-flow/using/dfs_getting_started.htm#set_up_admin)
+- [Data Flow Pre-requisites](https://docs.oracle.com/en-us/iaas/data-flow/using/dfs_getting_started.htm#set_up_admin)
 
 - [Spark submit CLI](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/spark-submit-cli/front.htm#front)
 
