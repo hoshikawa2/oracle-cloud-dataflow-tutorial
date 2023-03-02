@@ -199,6 +199,8 @@ You will need to fill a variable named **PASSWORD_SECRET_OCID** in your applicat
 
 ![secret-adw.png](./images/secret-adw.png?raw=true)
 
+>**Note:** Review the IAM Policy for OCI Vault here: [OCI Vault IAM Policy](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#sec-admins-manage-vaults-keys)
+
 ## Task 5: Create a Kafka Streaming (Oracle Cloud Streaming)
 
 Oracle Cloud Streaming is a Kafka like managed streaming service. You can develop applications using the Kafka APIs and common SDKs in the market.
