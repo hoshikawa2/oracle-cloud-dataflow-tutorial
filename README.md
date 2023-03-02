@@ -33,6 +33,8 @@ You need:
 >**Note**: This is the link to install the [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm) 
 
 - An **Apache Spark** installed in your local machine
+>**Note**: Review [Develop Oracle Cloud Infrastructure Data Flow Applications Locally, Deploy to The Cloud](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/data-flow/data-flow-tutorial/develop-apps-locally/front.htm) to understand how to develop locally and in Data Flow.
+
 >**Note**: This is the official page to install: [Apache Spark](https://spark.apache.org/downloads.html). There is an alternative procedures to install Apache Spark for each type of Operational System (Linux/Mac OS/Windows). You can try this alternatives too.
 
 - The **Spark Submit CLI** installed
@@ -547,6 +549,8 @@ You can maintain the other parameters and RUN the job.
 - [Data Flow Documentation](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/getting-started/dfs_tut_get_started.htm#get_started)
 
 - [Data Flow Pre-requisites](https://docs.oracle.com/en-us/iaas/data-flow/using/dfs_getting_started.htm#set_up_admin)
+
+- [Develop Oracle Cloud Infrastructure Data Flow Applications Locally, Deploy to The Cloud](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/data-flow/data-flow-tutorial/develop-apps-locally/front.htm)
 
 - [Spark submit CLI](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/spark-submit-cli/front.htm#front)
 
