@@ -1,21 +1,18 @@
-# Process large files in Autonomous Database and Kafka with Oracle Cloud Data Flow
+# Process large files in Autonomous Database and Kafka with Oracle Cloud Infrastructure Data Flow
 
 ## Introduction
 
-Oracle Cloud Data Flow is a managed service for the great open-source project named Apache Spark.
-Basically, with Spark you can use it for massive processing files, streaming and database operations. There is a lot of applications you can build with a very high scalable processing. 
-Spark can scale and use clustered machines to paralellize jobs with a minimum of configuration and hard-work.
+Oracle Cloud Infrastructure (OCI) Data Flow is a fully managed service for running Apache Spark ™ applications. Data Flow is used for processing large files, streaming, database operations, and you can build a lot of applications with very high scalable processing. Apache Spark can scale and use clustered machines to parallelize jobs with minimum configuration.
 
-Using Spark as a managed service (Data Flow), you can add many scalable services to multiply the power of cloud processing and this tutorial shows you how to use:
+Using Apache Spark as a managed service (Data Flow), you can add many scalable services to multiply the power of cloud processing and this tutorial shows you how to use:
 
 - Object Storage: As low-cost and scalable a file repository
-- Autonomous: As a scalable Database in the cloud
-- Streaming: As a high scalable Kafka managed service 
+- Autonomous Database: As a scalable Database in the cloud
+- Streaming: As a high scalable Kafka managed service
 
 ![dataflow-use-case.png](./images/dataflow-use-case.png?raw=true)
 
-
-In this tutorial, you can see the most common activities used to process large files, querying database and merge/join the data to form another table in memory. You can write this massive data into your database and in a Kafka queue. Everything with a very low-cost and high effective performance.
+In this tutorial, you can see the most common activities used to process large files, querying database and merge/join the data to form another table in memory. You can write this massive data into your database and in a Kafka queue with very low-cost and high performance.
 
 ## Objectives
 
@@ -24,531 +21,487 @@ In this tutorial, you can see the most common activities used to process large f
 
 ## Prerequisites
 
-You need:
+- An operational **Oracle Cloud** tenant: You can create a free Oracle Cloud account with US$ 300.00 for a month to try this tutorial. See [Create a Free Oracle Cloud Account](https://www.oracle.com/cloud/free/)
 
-- An **Oracle Cloud** tenant operational
->**Note**: You can create a free Oracle Cloud account with US$ 300.00 for a month to try this tutorial. See [Create a Free Oracle Cloud Account](https://www.oracle.com/cloud/free/)
+- **OCI CLI** (Oracle Cloud Command Line Interface) installed on your local machine: This is the link to install the [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm).
 
-- **OCI CLI** (Oracle Cloud Command Line Interface) installed on your local machine
->**Note**: This is the link to install the [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm) 
+- An **Apache Spark** application installed in your local machine. Review [Develop Oracle Cloud Infrastructure Data Flow Applications Locally, Deploy to The Cloud](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/data-flow/data-flow-tutorial/develop-apps-locally/front.htm) to understand how to develop locally and in Data Flow.
 
-- An **Apache Spark** installed in your local machine
->**Note**: Review [Develop Oracle Cloud Infrastructure Data Flow Applications Locally, Deploy to The Cloud](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/data-flow/data-flow-tutorial/develop-apps-locally/front.htm) to understand how to develop locally and in Data Flow.
+  >**Note**: This is the official page to install: [Apache Spark](https://spark.apache.org/downloads.html). There are alternative procedures to install Apache Spark for each type of Operational System (Linux/Mac OS/Windows).
 
->**Note**: This is the official page to install: [Apache Spark](https://spark.apache.org/downloads.html). There is an alternative procedures to install Apache Spark for each type of Operational System (Linux/Mac OS/Windows). You can try this alternatives too.
+- **Spark Submit CLI** installed. This is the link to install [Spark Submit CLI](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/spark-submit-cli/front.htm#front).
 
-- The **Spark Submit CLI** installed
->**Note**: This is the link to install [Spark Submit CLI](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/spark-submit-cli/front.htm#front)
+- **Maven** installed in your local machine.
 
-- The **Maven** installed in your local machine
+- Knowledge of OCI Concepts:
+  - Compartments
+  - IAM Policies
+  - Tenancy
+  - OCID of your resources
 
+## Task 1: Create the Object Storage structure
 
-- The knowledge on OCI Concepts:
+The Object Storage will be used as a default file repository. You can use other type of file repositories, but Object Storage is a simple and low-cost way to manipulate files with performance. In this tutorial, both applications will load a large CSV file from the object storage, showing how Apache Spark is fast and smart to process a high volume of data.
 
+1. Create a compartment: Compartments are important to organize and isolate your cloud resources. You can isolate your resources by IAM Policies.
 
-    Compartments
-    IAM Policies
-    Tenancy
-    OCID of your Resources
+   - You can use this link to understand and setup the policies for compartments: [Managing Compartments](https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcompartments.htm)
 
-## Task 1: Create the Object Storage Structure
+   - Create one compartment to host all resources of the 2 applications in this tutorial. Create a compartment named **analytics**.
 
-The Object Storage will be used as a default file repository. You can use another type of file repositories, but Object Storage is a simple and low-cost way to manipulate files with performance.
-In these demos, both applications will load a large CSV file from the object storage, showing how Spark is fast and smart to process a high volume of data.
+   - Go to the Oracle Cloud main menu and search for: **Identity & Security**, **Compartments**. In the Compartments section, click **Create Compartment** and enter the name.
 
-First of all, you need to configure your Object Storage.
+     ![create-compartment.png](./images/create-compartment.png?raw=true)
 
-### Create a compartment
+     >**Note**: You need to give the access to a group of users and include your user.
 
-Compartments are important to organize and isolate your cloud resources. You can isolate your resources by IAM Policies.
-You can use this link to understand and setup the policies to start use compartments:
+    - Click **Create Compartment** to include your compartment.
 
-[Managing Compartments](https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcompartments.htm)
+2. Create your bucket in the Object Storage: Buckets are logical containers for storing objects, so all files used for this demo will be stored in this bucket.
 
-For this tutorial, you need to create one compartment to host all the resources of the 2 applications in this tutorial.
-So please, create a compartment named **analytics**.
-Go to the Oracle Cloud main menu and search for: **Identity & Security** and **Compartments**. In the Compartments section, click on the **Create Compartment** button and fill the name.
+    - Go to the Oracle Cloud main menu and search for **Storage** and **Buckets**. In the Buckets section, select your compartment (analytics), created previously.
 
-![create-compartment.png](./images/create-compartment.png?raw=true)
+      ![select-compartment.png](./images/select-compartment.png?raw=true)
 
->**Note**: You need to give the access to a group of users and include your user. Please, take a look to the **Managing Compartments** to understand and setup this step.
+    - Click **Create Bucket**. Create 4 buckets: apps, data, dataflow-logs, Wallet
 
-To finish this action, click on the **Create Compartment** button to include your compartment.
+      ![create-bucket.png](./images/create-bucket.png?raw=true)
 
-### Create your bucket in the Object Storage
+    - Enter the **Bucket Name** information with these 4 buckets and maintain the other parameters with the default selection.
 
-Now you need to create your bucket. Buckets are logical containers for storing objects, so all files used for this demo will be stored in this bucket.
-Go to the Oracle Cloud main menu and search for **Storage** and **Buckets**. In the Buckets section, select your compartment (analytics), created previously:
+    - For each bucket, click **Create**. You can see your buckets created.
 
-![select-compartment.png](./images/select-compartment.png?raw=true)
+      ![buckets-dataflow.png](./images/buckets-dataflow.png?raw=true)
 
-Click on the **Create Bucket** button. Create 4 buckets:
-
-    apps
-    data
-    dataflow-logs
-    Wallet
-
-![create-bucket.png](./images/create-bucket.png?raw=true)
-
-Just fill the **Bucket Name** information with these 4 buckets and maintain the other parameters with the default selection.
-For each bucket, click on the **Create** button.
-You can see your buckets created:
-
-![buckets-dataflow.png](./images/buckets-dataflow.png?raw=true)
-
->**Note:** Please review the IAM Policies for the bucket. You need to setup the policies if you want to use these buckets in your demo applications. You can review the concepts and setup here [Overview of Object Storage](https://docs.oracle.com/en-us/iaas/Content/Object/Concepts/objectstorageoverview.htm) and [IAM Policies](https://docs.oracle.com/en-us/iaas/Content/Security/Reference/objectstorage_security.htm#iam-policies)
+>**Note:** Review the IAM Policies for the bucket. You must set up the policies if you want to use these buckets in your demo applications. You can review the concepts and setup here [Overview of Object Storage](https://docs.oracle.com/en-us/iaas/Content/Object/Concepts/objectstorageoverview.htm) and [IAM Policies](https://docs.oracle.com/en-us/iaas/Content/Security/Reference/objectstorage_security.htm#iam-policies).
 
 ## Task 2: Create the Autonomous Database
 
 Oracle Cloud Autonomous Database is a managed service for the Oracle Database. For this tutorial, the applications will connect to the database through a Wallet for security reasons.
-You need to instantiate the ADW following this link: [Provision Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/adbsa/autonomous-provision.html#GUID-0B230036-0A05-4CA3-AF9D-97A255AE0C08).
-Choose the Data Warehouse option opening the Oracle Cloud main menu, selecting **Oracle Database** and **Autonomous Data Warehouse**; select your compartment **analytics** and follow the tutorial to create the database instance. Name your instance with **Processed Logs**, choose **logs** as the database name and you don't need to change any code in the applications.
-After this, you need to stablish the ADMIN password and download the Wallet zip file.
 
-![create-adw.png](./images/create-adw.png?raw=true)
+- Instantiate the Autonomous Database as described here: [Provision Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/adbsa/autonomous-provision.html#GUID-0B230036-0A05-4CA3-AF9D-97A255AE0C08).
 
-After creating the database, you can enter on the instance and setup the **ADMIN** user password and download the **Wallet** zip file.
+- From the Oracle Cloud main menu, select the **Data Warehouse** option, select **Oracle Database** and **Autonomous Data Warehouse**; select your compartment **analytics** and follow the tutorial to create the database instance.
 
-![adw-admin-password.png](./images/adw-admin-password.png?raw=true)
+- Name your instance **Processed Logs**, choose **logs** as the database name and you don't need to change any code in the applications.
 
-![adw-connection.png](./images/adw-connection.png?raw=true)
+- Enter the ADMIN password and download the Wallet zip file.
 
-![adw-wallet.png](./images/adw-wallet.png?raw=true)
+   ![create-adw.png](./images/create-adw.png?raw=true)
 
-Save your Wallet zip file (Wallet_logs.zip) and annotate your **ADMIN** password, you will need to setup the application code.
+- After creating the database, you can setup the **ADMIN** user password and download the **Wallet** zip file.
 
-### Save your Wallet_logs.zip file into the bucket
+   ![adw-admin-password.png](./images/adw-admin-password.png?raw=true)
 
-Go to the **Wallet** bucket opening the Oracle Cloud main menu, selecting **Storage** and **Buckets**.
-Change to **analytics** compartment and you will see the **Wallet** bucket. Click on it.
+   ![adw-connection.png](./images/adw-connection.png?raw=true)
 
-To upload your Wallet zip file, just click on **Upload** button and attach the **Wallet_logs.zip** file. 
+   ![adw-wallet.png](./images/adw-wallet.png?raw=true)
 
-![upload-wallet.png](./images/upload-wallet.png?raw=true)
+- Save your Wallet zip file (`Wallet_logs.zip`) and annotate your **ADMIN** password, you will need to setup the application code.
 
->**Note:** Review IAM Policies for access the Autonomous Database here: [IAM Policy for Autonomous Database](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#db-admins-manage-adb)
+- Go to **Storage**, **Buckets**. Change to **analytics** compartment and you will see the **Wallet** bucket. Click on it.
 
-Let's go to the next Task!
+- To upload your Wallet zip file, just click **Upload** and attach the **Wallet_logs.zip** file.
 
-## Task 3: Upload the CSV Sample Files
+   ![upload-wallet.png](./images/upload-wallet.png?raw=true)
 
-To demonstrate the power of Spark, the applications will read a CSV file with 1,000,000 lines.
-This data will be inserted on ADW (Autonomous Data Warehouse) dabase with just one command line and will be published on a Kafka streaming (Oracle Cloud Streaming).
-All these resources are scalable and perfect for a high data volume.
+>**Note:** Review IAM Policies for accessing the Autonomous Database here: [IAM Policy for Autonomous Database](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#db-admins-manage-adb)
 
-Download these 2 links and Upload to the **data** bucket:
+## Task 3: Upload the CSV sample files
 
-[organizations.csv](./files/organizations.csv)
+To demonstrate the power of Apache Spark, the applications will read a CSV file with 1,000,000 lines. This data will be inserted in the Autonomous Data Warehouse database with just one command line and published on a Kafka streaming (Oracle Cloud Streaming). All these resources are scalable and perfect for high data volume.
 
-[organizations1M.csv](https://objectstorage.us-ashburn-1.oraclecloud.com/p/EqwMnzRwjtmes4okPLItLTOSNyq-KW9ktV5s1n4WCS_y1XpCWXDwJCkZ-PYKJeK0/n/idavixsf5sbx/b/data/o/organizations1M.csv)
+- Download these 2 links and Upload to the **data** bucket:
 
-The **organizations.csv** has only 100 lines, just to test the applications on your local machine.
-The **organizations1M.csv** contains 1,000,000 lines and will be used to run on the Data Flow instance.
+  - [organizations.csv](./files/organizations.csv)
 
-Select again the Oracle Cloud main menu, **Storage** and **Buckets**.
-Click on the **data** bucket and upload these 2 files.
+  - [organizations1M.csv](https://objectstorage.us-ashburn-1.oraclecloud.com/p/EqwMnzRwjtmes4okPLItLTOSNyq-KW9ktV5s1n4WCS_y1XpCWXDwJCkZ-PYKJeK0/n/idavixsf5sbx/b/data/o/organizations1M.csv)
 
-![data-bucket-header.png](./images/data-bucket-header.png?raw=true)
+    >**Note**:
+    > - **organizations.csv** has only 100 lines, just to test the applications on your local machine.
+    > - **organizations1M.csv** contains 1,000,000 lines and will be used to run on the Data Flow instance.
 
-![csv-files-data-bucket.png](./images/csv-files-data-bucket.png?raw=true)
+- From the Oracle Cloud main menu, go to **Storage** and **Buckets**. Click on the **data** bucket and upload the 2 files from the previous step.
 
-### Upload an auxiliary table to ADW Database
+   ![data-bucket-header.png](./images/data-bucket-header.png?raw=true)
 
-Download this file to upload to the ADW Database:
+   ![csv-files-data-bucket.png](./images/csv-files-data-bucket.png?raw=true)
 
-[GDP PER CAPTA COUNTRY.csv](./files/GDP_PER_CAPTA_COUNTRY.csv)
+- **Upload an auxiliary table to ADW Database**
 
-Go to Oracle Cloud main menu, select **Oracle Database** and **Autonomous Data Warehouse**.
-Click on the **Processed Logs** Instance to view the details.
-Click in the **Database actions** button to go to the database utilities.
+   - Download this file to upload to the ADW Database: [GDP PER CAPTA COUNTRY.csv](./files/GDP_PER_CAPTA_COUNTRY.csv)
 
-![adw-actions.png](./images/adw-actions.png?raw=true)
+  - From the Oracle Cloud main menu, select **Oracle Database** and **Autonomous Data Warehouse**.
 
-Insert your credentials for the **ADMIN** user:
+  - Click on the **Processed Logs** Instance to view the details.
 
-![adw-login.png](./images/adw-login.png?raw=true)
+  - Click **Database actions** to go to the database utilities.
 
-And click in **SQL** option to go to the Query Utilities:
+    ![adw-actions.png](./images/adw-actions.png?raw=true)
 
-![adw-select-sql.png](./images/adw-select-sql.png?raw=true)
+  - Enter your credentials for the **ADMIN** user.
 
-Click on the **Data Load** button
+     ![adw-login.png](./images/adw-login.png?raw=true)
 
-![adw-data-load.png](./images/adw-data-load.png?raw=true)
+  - Click on the **SQL** option to go to the Query Utilities.
 
-Drop the **GDP PER CAPTA COUNTRY.csv** file into the console panel and proceed to import the data into a table:
+     ![adw-select-sql.png](./images/adw-select-sql.png?raw=true)
 
-![adw-drag-file.png](./images/adw-drag-file.png?raw=true)
+  - Click **Data Load**.
 
-Finally, you can see your new table named **GDPPERCAPTA** imported with success.
+    ![adw-data-load.png](./images/adw-data-load.png?raw=true)
+
+  - Drop the **GDP PER CAPTA COUNTRY.csv** file into the console panel and proceed to import the data into a table.
+
+    ![adw-drag-file.png](./images/adw-drag-file.png?raw=true)
+
+You can see your new table named **GDPPERCAPTA** imported successfully.
 
 ![adw-table-imported.png](./images/adw-table-imported.png?raw=true)
 
 
 ## Task 4: Create a Secret Vault for your ADW ADMIN password
 
-For security reasons, the ADW ADMIN password will be saved on a Vault.
-Oracle Cloud Vault can host this password with security and can be accessed on your application with the OCI Authentication.
+For security reasons, the ADW ADMIN password will be saved on a Vault. Oracle Cloud Vault can host this password with security and can be accessed on your application with OCI Authentication.
 
-To create your secret in a vault, follow this link: [Add ADW ADMIN password to Vault](https://docs.oracle.com/en/learn/data-flow-analyze-logs/index.html#add-the-database-admin-password-to-vault)
+ - Create your secret in a vault as described in the following documentation: [Add the database admin password to Vault](https://docs.oracle.com/en/learn/data-flow-analyze-logs/index.html#add-the-database-admin-password-to-vault)
 
-You will need to fill a variable named **PASSWORD_SECRET_OCID** in your applications with the OCID commented on this documentation.
+- Create a variable named **PASSWORD_SECRET_OCID** in your applications and enter the OCID.
 
-![vault-adw.png](./images/vault-adw.png?raw=true)
+  ![vault-adw.png](./images/vault-adw.png?raw=true)
 
-![vault-adw-detail.png](./images/vault-adw-detail.png?raw=true)
+  ![vault-adw-detail.png](./images/vault-adw-detail.png?raw=true)
 
-![secret-adw.png](./images/secret-adw.png?raw=true)
+  ![secret-adw.png](./images/secret-adw.png?raw=true)
 
->**Note:** Review the IAM Policy for OCI Vault here: [OCI Vault IAM Policy](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#sec-admins-manage-vaults-keys)
+>**Note:** Review the IAM Policy for OCI Vault here: [OCI Vault IAM Policy](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#sec-admins-manage-vaults-keys).
 
-## Task 5: Create a Kafka Streaming (Oracle Cloud Streaming)
+## Task 5: Create a Kafka Streaming with Oracle Cloud Streaming service
 
-Oracle Cloud Streaming is a Kafka like managed streaming service. You can develop applications using the Kafka APIs and common SDKs in the market.
-So, in this demo, you will create an instance of Streaming and configure it to execute in both applications to publish and consume a high volume of data.
+Oracle Cloud Streaming is a Kafka like managed streaming service. You can develop applications using the Kafka APIs and common SDKs. In this tutorial, you will create an instance of Streaming and configure it to execute in both applications to publish and consume a high volume of data.
 
-First, you need to create an instance. Select the Oracle Cloud main menu e find the **Analytics & AI** option. So go to the **Streams**.
+1. From the Oracle Cloud main menu, go to **Analytics & AI**, **Streams**.
 
-Change the compartment to **analytics**. Every resource in this demo will be created on this compartment. This is more secure and easy to control IAM.
+2. Change the compartment to **analytics**. Every resource in this demo will be created on this compartment. This is more secure and easy to control IAM.
 
-So, click on **Create Stream** button:
+3. Click **Create Stream**.
 
-![create-stream.png](./images/create-stream.png?raw=true)
+   ![create-stream.png](./images/create-stream.png?raw=true)
 
-Fill the name with **kafka_like** (for example) and you could maintain all other parameters with the default values:
+4. Enter the name as **kafka_like** (for example) and you can maintain all other parameters with the default values.
 
-![save-create-stream.png](./images/save-create-stream.png?raw=true)
+   ![save-create-stream.png](./images/save-create-stream.png?raw=true)
 
-So click the **Create** button to initialize the instance.
-Wait for the **Active** Status. Now you can use the instance.
+5. Click **Create** to initialize the instance.
 
->**Note:** In the streaming creation process, you select as default **Auto-Create a default stream pool**, so you default pool will be create automatically.
+6. Wait for the **Active** status. Now you can use the instance.
 
-Click on the **DefaultPool** link.
-![default-pool-option.png](./images/default-pool-option.png?raw=true)
+   >**Note:** In the streaming creation process, you can select the **Auto-Create a default stream pool** option to automatically create your default pool.
 
-Let's view the connection setting:
-![stream-conn-settings.png](./images/stream-conn-settings.png?raw=true)
+7. Click on the **DefaultPool** link.
 
-![kafka-conn.png](./images/kafka-conn.png?raw=true)
+   ![default-pool-option.png](./images/default-pool-option.png?raw=true)
 
-Annotate all these information. You will need them in next step.
+8. View the connection setting.
 
->**Note:** Review the IAM Policies for the OCI Streaming here: [IAM Policy for OCI Streaming](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#streaming-manage-streams)
+   ![stream-conn-settings.png](./images/stream-conn-settings.png?raw=true)
+
+   ![kafka-conn.png](./images/kafka-conn.png?raw=true)
+
+9. Annotate this information as you will need it in the next step.
+
+>**Note:** Review the IAM Policies for the OCI Streaming here: [IAM Policy for OCI Streaming](https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/commonpolicies.htm#streaming-manage-streams).
 
 ## Task 6: Generate a AUTH TOKEN to access Kafka
 
-You can access OCI Streaming (Kafka API) and other resources in Oracle Cloud with an Auth Token associated to your user on OCI IAM.
-In Kafka Connection Settings, the SASL Connection Strings has a parameter named **password** and an **AUTH_TOKEN** value. See the previously section.
+You can access OCI Streaming (Kafka API) and other resources in Oracle Cloud with an Auth Token associated to your user on OCI IAM. In Kafka Connection Settings, the SASL Connection Strings has a parameter named **password** and an **AUTH_TOKEN** value as described in the previous task. To enable access to OCI Streaming, you need to go to your user on OCI Console and create an AUTH TOKEN.
 
-So, to enable access to OCI Streaming, you need to go to your user on OCI Console and create an AUTH TOKEN.
-Select the Oracle Cloud main menu, **Identity & Security** and finally **Users**.
-Remember that the user you need to create the **AUTH TOKEN** is the user configured with your **OCI CLI** and all the **IAM Policies** configuration for the resources created until now.
-The resources are:
+1. From the Oracle Cloud main menu, go to **Identity & Security**, **Users**.
 
-    Oracle Cloud Autonomous Data Warehouse
-    Oracle Cloud Streaming
-    Oracle Object Storage
-    Oracle Data Flow
+    >**Note**: Remember that the user you need to create the **AUTH TOKEN** is the user configured with your **OCI CLI** and all the **IAM Policies** configuration for the resources created until now. The resources are:
+    >  - Oracle Cloud Autonomous Data Warehouse
+    >  - Oracle Cloud Streaming
+    >  - Oracle Object Storage
+    >  - Oracle Data Flow
 
-So, click on your username to view the details:
+2. Click on your username to view the details.
 
-![auth_token_create.png](./images/auth_token_create.png?raw=true)
+   ![auth_token_create.png](./images/auth_token_create.png?raw=true)
 
-Click on the **Auth Tokens** option in the left side of the console and click on **Generate Token** button.
-The token will be generated only in this step and do not will be visible anymore. So, copy the value and keep it. If you lost the value, you need to generate the auth token again.
+3. Click on the **Auth Tokens** option in the left side of the console and click **Generate Token**.
 
-![auth_token_1.png](./images/auth_token_1.png?raw=true)
+   >**Note**: The token will be generated only in this step and will not be visible after you complete the step. So, copy the value and save it. If you lose the token value, you must generate the auth token again.
 
-![auth_token_2.png](./images/auth_token_2.png?raw=true)
+   ![auth_token_1.png](./images/auth_token_1.png?raw=true)
+
+   ![auth_token_2.png](./images/auth_token_2.png?raw=true)
 
 
-## Task 7: Setup the Demo Applications
+## Task 7: Set up the Demo applications
 
-The next step is setup some information before execute the demo.
-This demo has 2 applications:
+This tutorial has 2 demo applications for which we will set up the required information:
 
->**Java-CSV-DB:** This application will read 1,000,000 lines of a csv file (organizations1M.csv) and execute some usual processes in a common scenario for integration with a database (Oracle Cloud Autonomous Data Warehouse) and a Kafka streaming 
-(Oracle Cloud Streaming). So the demo shows how a CSV dataset can be merged with a auxiliary table in database and crossing types of tables generating a third dataset in memory. After the execution, the dataset will be inserted on ADW and published on the Kafka streaming. 1,000,000 lines!!!!
+- **Java-CSV-DB:** This application will read 1,000,000 lines of a csv file (organizations1M.csv) and execute some usual processes in a common scenario for integration with a database (Oracle Cloud Autonomous Data Warehouse) and a Kafka streaming (Oracle Cloud Streaming).
 
->**JavaConsumeKafka:** This application will repeat some steps of the first application just to take CPU and memory for a high volume of processing. The difference is, the first application publishes to the Kafka streaming, this application reads from the Streaming. 
+   The demo shows how a CSV dataset can be merged with a auxiliary table in database and crossing types of tables generating a third dataset in memory. After the execution, the dataset will be inserted on ADW and published on Kafka streaming.
 
-The applications could be downloaded here:
+- **JavaConsumeKafka:** This application will repeat some steps of the first application just to take CPU and memory for a high volume of processing. The difference is, the first application publishes to the Kafka streaming, whereas this application reads from the Streaming.
 
-[Java-CSV-DB.zip](./files/Java-CSV-DB.zip)
+1. Download the applications using the following links:
 
-[JavaConsumeKafka.zip](./files/JavaConsumeKafka.zip)
+   - [Java-CSV-DB.zip](./files/Java-CSV-DB.zip)
 
-### Find the information in your OCI Console
+   - [JavaConsumeKafka.zip](./files/JavaConsumeKafka.zip)
 
-You will need some information that can be found on your Oracle Cloud Console:
+2. Find the following details in your Oracle Cloud Console:
 
-#### Tenancy Namespace
+   - Tenancy Namespace
 
+     ![tenancy-namespace-1.png](./images/tenancy-namespace-1.png?raw=true)
 
-![tenancy-namespace-1.png](./images/tenancy-namespace-1.png?raw=true)
+     ![tenancy-namespace-detail.png](./images/tenancy-namespace-detail.png?raw=true)
 
-![tenancy-namespace-detail.png](./images/tenancy-namespace-detail.png?raw=true)
+   - Password Secret
 
----
+     ![vault-adw.png](./images/vault-adw.png?raw=true)
 
-#### Password Secret
-![vault-adw.png](./images/vault-adw.png?raw=true)
+     ![vault-adw-detail.png](./images/vault-adw-detail.png?raw=true)
 
-![vault-adw-detail.png](./images/vault-adw-detail.png?raw=true)
+     ![secret-adw.png](./images/secret-adw.png?raw=true)
 
-![secret-adw.png](./images/secret-adw.png?raw=true)
+   - Streaming Connection Settings
 
----
-#### Streaming Connection Settings
-![kafka-conn.png](./images/kafka-conn.png?raw=true)
+      ![kafka-conn.png](./images/kafka-conn.png?raw=true)
 
----
-#### Auth Token
-![auth_token_create.png](./images/auth_token_create.png?raw=true)
+   - Auth Token
 
-![auth_token_2.png](./images/auth_token_2.png?raw=true)
+     ![auth_token_create.png](./images/auth_token_create.png?raw=true)
 
----
-#### Fill the Variables values
+     ![auth_token_2.png](./images/auth_token_2.png?raw=true)
 
-With all these information, open you zip files (Java-CSV-DB.zip and JavaConsumeKafka.zip).
-Find on each project the folder **/src/main/java/example** and find the **Example.java** code.
+3. Open the downloaded zip files (`Java-CSV-DB.zip` and `JavaConsumeKafka.zip`). Go to the **/src/main/java/example** folder and find the **Example.java** code.
 
-![code-variables.png](./images/code-variables.png?raw=true)
+    ![code-variables.png](./images/code-variables.png?raw=true)
 
-These are the variables that need to be changed with your tenancy resources values.
+    - These are the variables that need to be changed with your tenancy resources values.
 
-|VARIABLE NAME| RESOURCE NAME| INFORMATION TITLE|
-|-----|----|----|
-|NAMESPACE|TENANCY NAMESPACE|TENANCY|
-|OBJECT_STORAGE_NAMESPACE|TENANCY NAMESPACE|TENANCY|
-|PASSWORD_SECRET_OCID|PASSWORD_SECRET_OCID|OCID|
-|streamPoolId|Streaming Connection Settings|ocid1.streampool.oc1.iad..... value in SASL Connection String|
-|kafkaUsername|Streaming Connection Settings|value of usename inside " " in SASL Connection String| 
-|kafkaPassword|Auth Token|The value is displayed only in the creation step|
+      |VARIABLE NAME| RESOURCE NAME| INFORMATION TITLE|
+      |-----|----|----|
+      |NAMESPACE|TENANCY NAMESPACE|TENANCY|
+      |OBJECT_STORAGE_NAMESPACE|TENANCY NAMESPACE|TENANCY|
+      |PASSWORD_SECRET_OCID|PASSWORD_SECRET_OCID|OCID|
+      |streamPoolId|Streaming Connection Settings|ocid1.streampool.oc1.iad..... value in SASL Connection String|
+      |kafkaUsername|Streaming Connection Settings|value of usename inside " " in SASL Connection String|
+      |kafkaPassword|Auth Token|The value is displayed only in the creation step|
 
->**Note:** All the resources created for this demo are in the US-ASHBURN-1 region. Check in what region you want to work. If you change the region, you need to change 2 points in 2 code files:
-> 
-> **Example.java**: Change the **bootstrapServers** variable, replacing the "us-ashburn-1" with your new region
+>**Note:** All the resources created for this tutorial are in the US-ASHBURN-1 region. Check in what region you want to work. If you change the region, you need to change the following details in the 2 code files:
 >
-> **OboTokenClientConfigurator.java**: Change the **CANONICAL_REGION_NAME** variable with your new region 
+> - **Example.java**: Change the **bootstrapServers** variable, replacing the "us-ashburn-1" with your new region.
+>
+>
+> - **OboTokenClientConfigurator.java**: Change the **CANONICAL_REGION_NAME** variable with your new region.
 
-## Task 8: Understand the Java Code
+## Task 8: Understand the Java code
 
-This demos were created in Java and this code can be portable to Python with no problem.
-The demo were divided in 2 parts:
+This tutorial was created in Java and this code can be ported to Python also. The tutorial is divided in 2 parts:
 
-    Application to Publish in a Kafka Streaming
-    Application to Consume from a Kafaka Streaming
+  - Application 1 to publish to Kafka Streaming
 
-Both applications, to prove the efficience and scalability, were developed to show some possibilities in a common use case of an integration process. So both code show these examples:
+  - Application 2 to consume from Kafka Streaming
 
-    Read a CSV file with 1,000,000 of lines
-    Prepare the ADW Wallet to connect through a JDBC Connection
-    Insert the 1,000,000 of CSV data into the ADW database
-    Execute a SQL sentence to query an ADW table
-    Execute a SQL sentence to JOIN a CSV dataset with an ADW dataset table
-    Perform a loop of the CSV dataset to demonstrate an iteration with the data
-    Operate with Kafka Streaming
+To prove the efficiency and scalability, both applications were developed to show some possibilities in a common use case of an integration process. So the code for both the applications show the following examples:
 
-Oracle Cloud Data Flow is a managed service for Apache Spark. This demo can be executed in your local machine and can be deployed into the Data Flow instance to run as a job execution. The workflow for a developer is very easy and fast.
+  - Read a CSV file with 1,000,000 lines
 
->**Note:** Both, Data Flow job and you local machine, use the OCI CLI configuration to access the OCI resources.
-In the Data Flow side, everything is pre-configured, so no need to change the parameters. In your local machine side, you installed previously the OCI CLI and configure the tenant, user and private key to access your OCI resources.
+  - Prepare the ADW Wallet to connect through a JDBC Connection
 
-Let's show the Example.java code in sections:
+  - Insert 1,000,000 lines of CSV data into the ADW database
 
-#### Spark initialization
+  - Execute a SQL sentence to query an ADW table
 
-This part of code represents the Spark initialization. Many confirations to perform execution processes are configured automatically, so it's very easy to work with the Spark engine.
+  - Execute a SQL sentence to JOIN a CSV dataset with an ADW dataset table
 
-![Spark-initilization-code](./images/spark-initialization-code.png?raw=true)
+  - Perform a loop of the CSV dataset to demonstrate an iteration with the data
 
-#### Read a large file in many formats
+  - Operate with Kafka Streaming
 
-Spark engine and the SDK permit a fast load and write file formats. A high volume can be manipulated in seconds and even miliseconds.
-So you can MERGE, FILTER, JOIN datasets in memory. The best thing is, you can manipulate differents datasources. 
+This demo can be executed in your local machine and can be deployed into the Data Flow instance to run as a job execution.
 
-![read-csv-file-spark.png](./images/read-csv-file-spark.png?raw=true)
+>**Note:** For both the Data Flow job and your local machine, use the OCI CLI configuration to access the OCI resources. In the Data Flow side, everything is pre-configured, so no need to change the parameters. In your local machine side, install the OCI CLI and configure the tenant, user and private key to access your OCI resources.
 
-#### Read the ADW Vault Secret
+Let's show the `Example.java` code in sections:
 
-This part of code access your vault to obtain the secret of your ADW instance.
+- Apache Spark initialization: This part of the code represents Spark initialization. Most configurations to perform the execution processes are configured automatically, so it's very easy to work with the Spark engine.
 
-![spark-adw-vault-secret.png](./images/spark-adw-vault-secret.png?raw=true)
+   ![Spark-initilization-code](./images/spark-initialization-code.png?raw=true)
 
-#### Read the Wallet.zip file to connect through JDBC
+- Read a large file in many formats: The Apache Spark engine and SDK permit a fast load and write file formats. A high volume can be manipulated in seconds and even milliseconds. So you can MERGE, FILTER, JOIN datasets in memory and manipulate different data sources.
 
-This section shows how to load the Wallet.zip file from Object Storage e configure the JDBC driver for use.
+   ![read-csv-file-spark.png](./images/read-csv-file-spark.png?raw=true)
 
-![spark-jdbc-connection.png](./images/spark-jdbc-connection.png?raw=true)
+- Read the ADW Vault Secret: This part of the code accesses your vault to obtain the secret for your ADW instance.
 
-![spark-adw-get-secret.png](./images/spark-adw-get-secret.png?raw=true)
+  ![spark-adw-vault-secret.png](./images/spark-adw-vault-secret.png?raw=true)
 
-#### Insert 1,000,000 lines of CSV dataset into ADW Database
+- Read the `Wallet.zip` file to connect through JDBC: This section shows how to load the `Wallet.zip` file from Object Storage and configure the JDBC driver.
 
-This is why Spark is nice and impressive. From the CSV dataset, it's possible to batch insert into ADW Database directly. Spark can optimizes the execution, using all the power of machines clusterized, CPUs and Memory to obtain best performances.
+  ![spark-jdbc-connection.png](./images/spark-jdbc-connection.png?raw=true)
 
-![spark-insert-adw.png](./images/spark-insert-adw.png?raw=true)
+  ![spark-adw-get-secret.png](./images/spark-adw-get-secret.png?raw=true)
 
-#### Data Transformation
+- Insert 1,000,000 lines of CSV dataset into ADW Database: From the CSV dataset, it is possible to batch insert into the ADW Database directly. Apache Spark can optimize the execution using all the power of machines clustered, CPUs and memory to obtain the best performance.
 
-Imagine load many CSVs files, query some tables in the database in datasets, JOIN, filter, eliminate colums, calculate and many other operations in a few code lines, in a fraction of time and perform a write operation in any format.
+   ![spark-insert-adw.png](./images/spark-insert-adw.png?raw=true)
 
-![spark-transform-datasets.png](./images/spark-transform-datasets.png?raw=true)
+- Data Transformation: Imagine loading many CSVs files, querying some tables in the database in datasets, JOIN, filter, eliminate columns, calculate and many other operations in a few code lines, in a fraction of time and perform a write operation in any format. In this example, a new dataset named **oracleDF2** was created from a CSV dataset and an ADW Database dataset.
 
-In this example, a new dataset named **oracleDF2** was created from a CSV dataset and an ADW Database dataset.
+  ![spark-transform-datasets.png](./images/spark-transform-datasets.png?raw=true)
 
-#### Iterate with a dataset in a Loop
+- Iterate with a dataset in a loop: This is an example of a loop iteration over the CSV dataset (1,000,000 lines). The **row** object contains the mapping of the CSV fields structure. So you can obtain the data of each line and can execute API calls and many other operations.
 
-This is an example of a loop iteration over the CSV dataset (1,000,000 lines). The **row** object contains the mapping of the CSV fields structure. So you can obtain the data of each line and can execute APIs call and many other operations.
+  ![spark-iteration.png](./images/spark-iteration.png?raw=true)
 
-![spark-iteration.png](./images/spark-iteration.png?raw=true)
+- Kafka Operations: This is the preparation for connecting to OCI Streaming using the Kafka API.
 
-#### Kafka Operations
+  >**Note:** Oracle Cloud Streaming is compatible with most Kafka APIs.
 
-This is the preparation for connect to the OCI Streaming, using the Kafka API.
+  ![kafka-connection.png](./images/kafka-connection.png?raw=true)
 
->**Note:** Oracle Cloud Streaming is compatible with the most Kafka APIs.
+- After configuring the connection parameters, the code shows how to produce and consume the streaming.
 
-![kafka-connection.png](./images/kafka-connection.png?raw=true)
+  ![kafka-produce.png](./images/kafka-produce.png?raw=true)
 
-After configure the connection parameters, the code shows how to produce and consume the streaming.
+  ![kafka-consume.png](./images/kafka-consume.png?raw=true)
 
-![kafka-produce.png](./images/kafka-produce.png?raw=true)
 
-![kafka-consume.png](./images/kafka-consume.png?raw=true)
+## Task 9: Package your application with Maven
 
+Before executing the job in Apache Spark, it is necessary to package your application with Maven. Maven is one of the most known utilities to package applications with libraries and plugins.
 
-## Task 9: Package your Application with Maven
+>**Note:**
+>  - You can execute a fast test changing the CSV file with another with only 100 lines. To do this, just locate the following code in the **Example.java** file: **private static String INPUT_PATH = "oci://data@" + OBJECT_STORAGE_NAMESPACE + "/organizations1M.csv";**
+>
+>  - Replace `organizations1M.csv` with `organizations.csv` and the execution will be significantly faster.
 
-Before execute the job in Spark, it's necessary to package you application with Maven.
-Maven is one of the most known utilities to package applications with libraries and plugins. Let's package the application:
 
->**Note:** You can execute a fast test changing the CSV file with another with only 100 lines. To do this, just locate in the **Example.java** this code:
- 		**private static String INPUT_PATH = "oci://data@" + OBJECT_STORAGE_NAMESPACE + "/organizations1M.csv";**
-> 
-> Change the organizations1M.csv with organizations.csv. You will execute much more faster.
+1. **Java-CSV-DB Package**
 
+   1. Go to **/Java-CSV-DB** folder and execute this command:
 
-### Java-CSV-DB Package
+      `mvn package`
 
-Go to **/Java-CSV-DB** folder and execute this command:
+   2. You can see **Maven** starting the packaging.
 
-    mvn package
+      ![maven-package-1a.png](./images/maven-package-1a.png?raw=true)
 
-You can see **Maven** starting the packaging:
+   3. If everything is correct, you can see the **Success** message.
 
-![maven-package-1a.png](./images/maven-package-1a.png?raw=true)
+      ![maven-success-1a.png](./images/maven-success-1a.png?raw=true)
 
-If everything is correct, you can see **Success** message:
+   4. To test your application in your local Apache Spark machine, execute this command:
 
-![maven-success-1a.png](./images/maven-success-1a.png?raw=true)
+       `spark-submit --class example.Example target/loadadw-1.0-SNAPSHOT.jar`
 
-To test you application in your local Spark machine, just execute this command:
+2. **JavaConsumeKafka Package**
 
-    spark-submit --class example.Example target/loadadw-1.0-SNAPSHOT.jar
+   1. Go to the **/JavaConsumeKafka** folder and execute this command:
 
-### JavaConsumeKafka Package
+      `mvn package`
 
-Go to **/JavaConsumeKafka** folder and execute this command:
+   2. You can see **Maven** starting the packaging.
 
-    mvn package
+      ![maven-package-2a.png](./images/maven-package-2a.png?raw=true)
 
-You can see **Maven** starting the packaging:
+   3. If everything is correct, you can see the **Success** message.
 
-![maven-package-2a.png](./images/maven-package-2a.png?raw=true)
+      ![maven-success-2a.png](./images/maven-success-2a.png?raw=true)
 
-If everything is correct, you can see **Success** message:
+   4. To test your application in yourr local Apache Spark machine, execute this command:
 
-![maven-success-2a.png](./images/maven-success-2a.png?raw=true)
+       `spark-submit --class example.Example target/loadkafka-1.0-SNAPSHOT.jar`
 
-To test you application in your local Spark machine, just execute this command:
+## Task 10: Verify the execution
 
-    spark-submit --class example.Example target/loadkafka-1.0-SNAPSHOT.jar
+1. **Confirm ADW Insertions**
 
-## Task 10: Verify the Execution
+   1. Go to the Oracle Cloud main menu, select **Oracle Database** and **Autonomous Data Warehouse**.
 
-### Confirm ADW Insertions
+   2. Click on the **Processed Logs** Instance to view the details.
 
-You can see the results inside the Query 
-Go to Oracle Cloud main menu, select **Oracle Database** and **Autonomous Data Warehouse**.
-Click on the **Processed Logs** Instance to view the details.
-Click in the **Database actions** button to go to the database utilities.
+   3. Click **Database actions** to go to the database utilities.
 
-![adw-actions.png](./images/adw-actions.png?raw=true)
+      ![adw-actions.png](./images/adw-actions.png?raw=true)
 
-Insert your credentials for the **ADMIN** user:
+   4. Enter your credentials for the **ADMIN** user.
 
-![adw-login.png](./images/adw-login.png?raw=true)
+      ![adw-login.png](./images/adw-login.png?raw=true)
 
-And click in **SQL** option to go to the Query Utilities:
+   5. Click on the **SQL** option to go to the Query Utilities.
 
-![adw-select-sql.png](./images/adw-select-sql.png?raw=true)
+      ![adw-select-sql.png](./images/adw-select-sql.png?raw=true)
 
-Execute a query to see the 1,000,000 of lines in your table:
+   6. Execute a query to see the 1,000,000 of lines in your table.
 
-![ADW-query-organizations.png](./images/ADW-query-organizations.png?raw=true)
+      ![ADW-query-organizations.png](./images/ADW-query-organizations.png?raw=true)
 
-### Confirm Execution Logs
+2. **Confirm Execution Logs**
 
-You can see in the execution logs if the job can access and load the datasets.
+   - You can see in the execution logs if the job can access and load the datasets.
 
-![spark-csv-results.png](./images/spark-csv-results.png?raw=true)
+     ![spark-csv-results.png](./images/spark-csv-results.png?raw=true)
 
-## Task 11: Create and Execute a Data Flow Job
+## Task 11: Create and execute a Data Flow job
 
-Now, with both applications running with success in your local Spark machine, you can deploy them into the **Oracle Cloud Data Flow** in your tenancy.
+Now, with both applications running successfully in your local Apache Spark machine, you can deploy them into the **Oracle Cloud Data Flow** in your tenancy.
 
-### Upload the packages into Object Storage
 
-### Create a   Application
+1. From the Oracle Cloud main menu, go to **Analytics & AI** and **Data Flow**.
 
-Select the Oracle Cloud main menu and go to **Analytics & AI** and **Data Flow**.
-Be sure to select your **analytics** compartment before create a Data Flow Application.
+2. Be sure to select your **analytics** compartment before create a Data Flow Application.
 
-Click on **Create application** button:
+3. Click **Create application**.
 
-![create-dataflow-app.png](./images/create-dataflow-app.png?raw=true)
+   ![create-dataflow-app.png](./images/create-dataflow-app.png?raw=true)
 
-And now, fill the parameters like this:
+4. Complete the parameters as shown in the following image:
 
-![dataflow-app.png](./images/dataflow-app.png?raw=true)
+   ![dataflow-app.png](./images/dataflow-app.png?raw=true)
 
-Click on **Create** button.
-After creation, click on the **Scale Demo** link to view details:
+5. Click **Create**.
 
-Now click on the **Run** button to execute the job.
-Confirm the parameters and click **Run** again:
+6. After creation, click on the **Scale Demo** link to view details.
 
-![dataflow-run-job.png](./images/dataflow-run-job.png?raw=true)
+7. Click **Run** to execute the job.
 
-It's possible to view the Status of the job:
+8. Confirm the parameters and click **Run** again.
 
-![dataflow-run-status.png](./images/dataflow-run-status.png?raw=true)
+   ![dataflow-run-job.png](./images/dataflow-run-job.png?raw=true)
 
-Wait until the Status go to **Succeeded** and you can see the results.
+9. View the Status of the job, wait until the Status changes to **Succeeded** and you can see the results.
 
-![dataflow-run-success.png](./images/dataflow-run-success.png?raw=true)
 
-#### Next Step
+   ![dataflow-run-status.png](./images/dataflow-run-status.png?raw=true)
 
-The first application publishes the data into the Kafka Streaming.
-The second application consumes these data from the Kafka.
 
-So, create another **Data Flow Application** as the same way you created the first one.
-Remember only to change the **name** of your application and pay attention to change the package, from **loadadw-1.0-SNAPSHOT.jar** to **loadkafka-1.0-SNAPSHOT.jar**.
-You can maintain the other parameters and RUN the job.
+   ![dataflow-run-success.png](./images/dataflow-run-success.png?raw=true)
+
+## Next Steps
+
+The first application publishes data into Kafka Streaming. The second application consumes this data from Kafka.
+
+ - Create another **Data Flow Application** using the same steps when you created the first Data Flow application.
+
+ - You must change the **Name** of your application and change the package, from **loadadw-1.0-SNAPSHOT.jar** to **loadkafka-1.0-SNAPSHOT.jar**.
+
+ - You can retain the other parameters to be the same as the first Data Flow application and RUN the job.
 
 ## Related Links
 
-- [Free OCI](https://www.oracle.com/cloud/free/)
+- [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/)
 
 - [Data Flow Documentation](https://docs.oracle.com/en-us/iaas/data-flow/data-flow-tutorial/getting-started/dfs_tut_get_started.htm#get_started)
 
-- [Data Flow Pre-requisites](https://docs.oracle.com/en-us/iaas/data-flow/using/dfs_getting_started.htm#set_up_admin)
+- [Data Flow Prerequisites](https://docs.oracle.com/en-us/iaas/data-flow/using/dfs_getting_started.htm#set_up_admin)
 
 - [Develop Oracle Cloud Infrastructure Data Flow Applications Locally, Deploy to The Cloud](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/data-flow/data-flow-tutorial/develop-apps-locally/front.htm)
 
@@ -562,9 +515,9 @@ You can maintain the other parameters and RUN the job.
 
 - [Provision Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/adbsa/autonomous-provision.html#GUID-0B230036-0A05-4CA3-AF9D-97A255AE0C08)
 
-- [Add ADMIN password to Vault](https://docs.oracle.com/en/learn/data-flow-analyze-logs/index.html#add-the-database-admin-password-to-vault)
+- [Add the database admin password to Vault](https://docs.oracle.com/en/learn/data-flow-analyze-logs/index.html#add-the-database-admin-password-to-vault)
 
-- [Create Oracle Cloud Streaming](https://blogs.oracle.com/developers/post/getting-started-with-oracle-streaming-service-oss)
+- [Getting Started With Oracle Streaming Service](https://blogs.oracle.com/developers/post/getting-started-with-oracle-streaming-service-oss)
 
 ## Acknowledgments
 
